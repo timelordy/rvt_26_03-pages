@@ -1,0 +1,14 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+<title id="title">Одна модель Revit и связанные виды</title><desc id="desc">В центре модель дома, вокруг план, разрез, фасад и 3D-вид.</desc>
+<defs><style>.bg{fill:#f4f6ee}.card{fill:#fffefa;stroke:#cbd9ca;stroke-width:3}.ink{fill:#193e34}.muted{fill:#6c8276}.accent{fill:#bd5938}.line{stroke:#7d9a89;stroke-width:5;fill:none;stroke-linecap:round;stroke-linejoin:round}.dash{stroke:#bd5938;stroke-width:4;fill:none;stroke-dasharray:10 12}.h{font:700 34px system-ui,sans-serif}.t{font:500 22px system-ui,sans-serif}.s{font:650 20px system-ui,sans-serif}</style></defs>
+<rect class="bg" width="1200" height="675" rx="28"/>
+<text class="ink h" x="60" y="70">Один объект меняем один раз</text><text class="muted t" x="60" y="108">План, разрез, фасад и 3D показывают одно состояние модели</text>
+<path class="dash" d="M600 230V150M460 300L335 230M740 300L865 230M460 450L335 535M740 450L865 535"/>
+<rect class="card" x="435" y="215" width="330" height="290" rx="24"/>
+<path class="line" d="M485 360L600 260l115 100v100H485zM540 455v-92h62v92M640 455v-62h46v62"/>
+<text class="accent s" x="485" y="545">МОДЕЛЬ REVIT</text><text class="muted t" x="485" y="580">объекты + параметры + связи</text>
+<g><rect class="card" x="70" y="145" width="265" height="170" rx="20"/><text class="accent s" x="105" y="190">ПЛАН</text><path class="line" d="M105 225h190v55H105zM165 225v55M230 225v55"/><circle class="accent" cx="148" cy="253" r="6"/></g>
+<g><rect class="card" x="865" y="145" width="265" height="170" rx="20"/><text class="accent s" x="900" y="190">РАЗРЕЗ</text><path class="line" d="M900 276h195M925 276V225l70-55 75 55v51M995 170v106"/></g>
+<g><rect class="card" x="70" y="485" width="265" height="135" rx="20"/><text class="accent s" x="105" y="530">ФАСАД</text><path class="line" d="M105 587h190M125 587v-48l75-48 75 48v48M175 587v-44h45v44"/></g>
+<g><rect class="card" x="865" y="485" width="265" height="135" rx="20"/><text class="accent s" x="900" y="530">3D-ВИД</text><path class="line" d="M915 570l65-38 80 35-66 38zM915 570v-55l65-38 80 35v55M980 477v55"/></g>
+</svg>

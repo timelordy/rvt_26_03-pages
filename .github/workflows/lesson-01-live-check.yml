@@ -1,0 +1,129 @@
+name: Verify live lesson 1
+on:
+  push:
+    branches: [main]
+    paths:
+      - .github/workflows/lesson-01-live-check.yml
+      - assets/lesson-01-walkthrough.js
+      - assets/lesson-01-walkthrough.css
+      - assets/lesson-01/**
+      - index.html
+      - lessons-live.js
+permissions:
+  contents: read
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    env:
+      LIVE_URL: https://${{ github.repository_owner }}.github.io/${{ github.event.repository.name }}/
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install browser
+        run: |
+          python -m pip install playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Wait for the matching Pages assets
+        shell: python
+        run: |
+          from pathlib import Path
+          from urllib.request import Request,urlopen
+          import os,time
+          root=os.environ['LIVE_URL']
+          files=[
+              'assets/lesson-01-walkthrough.js',
+              'assets/lesson-01-walkthrough.css',
+              'assets/lesson-01/revit-home-2024.png',
+              'assets/lesson-01/revit-3d-example.png',
+              'assets/lesson-01/interface.png',
+              'assets/lesson-01/browser.png',
+              'assets/lesson-01/properties.png',
+          ]
+          for attempt in range(30):
+              try:
+                  for name in files:
+                      req=Request(root+name+'?verify='+os.environ['GITHUB_SHA'],headers={'Cache-Control':'no-cache'})
+                      with urlopen(req,timeout=15) as response:
+                          actual=response.read()
+                      assert actual==Path(name).read_bytes(),name
+                  with urlopen(root+'?verify='+os.environ['GITHUB_SHA'],timeout=15) as response:
+                      html=response.read()
+                  assert b'lesson-01-walkthrough.js?v=2' in html
+                  assert b'lesson-01-walkthrough.css?v=2' in html
+                  print('Live Pages HTML and real Revit screenshots match the checked-out commit')
+                  break
+              except Exception as error:
+                  if attempt==29:
+                      raise
+                  print('Waiting for Pages:',type(error).__name__)
+                  time.sleep(10)
+      - name: Check real screenshots on the actual public URL
+        shell: python
+        run: |
+          from pathlib import Path
+          import os
+          from playwright.sync_api import sync_playwright,expect
+          url=os.environ['LIVE_URL']+'?real-revit=1'
+          out=Path('lesson-01-live-qa');out.mkdir(exist_ok=True)
+          with sync_playwright() as p:
+              browser=p.chromium.launch()
+              page=browser.new_page(viewport={'width':1440,'height':1000})
+              errors=[];page.on('pageerror',lambda error:errors.append(str(error)))
+              page.goto(url,wait_until='networkidle',timeout=60000)
+              page.wait_for_function('window.S40 && window.S40Lesson01Walkthrough')
+              initial=page.evaluate('JSON.stringify(S40.getState())')
+              page.locator('[data-tab="guide"]').click()
+              page.locator('button[data-action="guide-lesson"][data-id="start"]').first.click()
+              expect(page.locator('.r1w-shell')).to_be_visible()
+              expect(page.locator('.r1w-nav button')).to_have_count(10)
+              expect(page.locator('.r1w-step-head h3')).to_have_text('Открой Revit 2024')
+              assert page.locator('.r1w-home-mock').count()==0
+              home=page.locator('img[src$="revit-home-2024.png"]')
+              expect(home).to_be_visible()
+              page.wait_for_function("document.querySelector('img[src$=\"revit-home-2024.png\"]')?.naturalWidth>0")
+
+              page.locator('[data-r1w-goto="1"]').click()
+              assert page.locator('img[src$="template-flow.svg"]').count()==0
+              expect(page.locator('.r1w-plain-note')).to_contain_text('реальное окно Revit')
+
+              page.locator('[data-r1w-goto="2"]').click()
+              expect(page.locator('img[src$="interface.png"]')).to_be_visible()
+              page.locator('[data-r1w-goto="3"]').click()
+              expect(page.locator('img[src$="browser.png"]')).to_be_visible()
+
+              page.locator('[data-r1w-goto="5"]').click()
+              real3d=page.locator('img[src$="revit-3d-example.png"]')
+              expect(real3d).to_be_visible()
+              page.wait_for_function("document.querySelector('img[src$=\"revit-3d-example.png\"]')?.naturalWidth>0")
+              assert page.locator('img[src$="model-views.svg"]').count()==0
+
+              page.locator('[data-r1w-goto="6"]').click()
+              expect(page.locator('img[src$="properties.png"]')).to_be_visible()
+              page.locator('[data-r1w-goto="7"]').click()
+              assert page.locator('img[src$="save-flow.svg"]').count()==0
+              page.locator('[data-r1w-goto="8"]').click()
+              assert page.locator('img[src$="file-types.svg"]').count()==0
+              expect(page.locator('.r1w-files')).to_be_visible()
+
+              assert page.evaluate('JSON.stringify(S40.getState())')==initial
+              for width in [360,390,768,1440]:
+                  page.set_viewport_size({'width':width,'height':900})
+                  assert page.evaluate('document.documentElement.scrollWidth<=innerWidth+1'),width
+              page.set_viewport_size({'width':1440,'height':1000})
+              page.locator('[data-r1w-goto="0"]').click()
+              page.locator('.r1w-shell').screenshot(path=str(out/'lesson-01-real-revit-live.png'))
+              page.locator('button[data-action="guide-lesson"][data-id="navigation"]').first.click()
+              assert page.locator('.live-lesson-points li').count()==11
+              assert not errors,errors
+              browser.close()
+          print('Live Lesson 1 uses real Autodesk UI screenshots and no fake walkthrough diagrams')
+      - name: Save live UI evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lesson-01-live-real-revit-verification
+          path: lesson-01-live-qa/
+          retention-days: 7

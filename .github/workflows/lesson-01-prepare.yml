@@ -1,0 +1,49 @@
+name: Prepare and verify lesson 1
+on:
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  verify:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install test tools
+        run: |
+          python -m pip install Pillow playwright==1.55.0
+          python -m playwright install --with-deps chromium
+      - name: Prepare illustrations and guide integration
+        run: |
+          python .github/lesson-01/prepare.py
+          node --check assets/lesson-01.js
+          node --check lessons-live.js
+      - name: Browser acceptance tests
+        run: python .github/lesson-01/check.py
+      - name: Save review artifact
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: lesson-01-review
+          path: |
+            lesson-01-qa/
+            assets/lesson-01/
+            assets/lesson-01.js
+            assets/lesson-01.css
+            index.html
+            lessons-live.js
+            .github/lesson-01/
+          include-hidden-files: true
+          retention-days: 7
+      - name: Commit tested public build
+        run: |
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git add index.html lessons-live.js assets/lesson-01.css assets/lesson-01/
+          if ! git diff --cached --quiet; then
+            git commit -m 'Build and verify illustrated lesson 1'
+            git push
+          fi
