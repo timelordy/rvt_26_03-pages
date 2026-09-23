@@ -1,7 +1,7 @@
 {
   "schema": "sosedi40-state-v3",
   "datasetId": "3de169b65ae75d76",
-  "revision": 21,
+  "revision": 22,
   "activeGroup": "g-main",
   "groups": [
     {
@@ -10,21 +10,6 @@
       "seed": "sosedi40-main-2026-09",
       "drawCount": 16,
       "entries": [
-        {
-          "id": "g-main-3-1789115124474",
-          "student": "Участник П-22",
-          "plotId": 22,
-          "cardId": 35,
-          "stage": 0,
-          "notes": "",
-          "scores": [
-            null,
-            null,
-            null,
-            null
-          ],
-          "time": "2026-09-11T08:25:24.474Z"
-        },
         {
           "id": "g-main-4-2026092301",
           "student": "Участник П-19",
@@ -224,5 +209,5 @@
       "log": []
     }
   ],
-  "updatedAt": "2026-09-23T19:00:12.000Z"
+  "updatedAt": "2026-09-23T19:12:00.000Z"
 }
